@@ -68,6 +68,7 @@ byte3 → [31:24]
   (режим **245 Synchronous FIFO**)
   <img width="852" height="270" alt="image" src="https://github.com/user-attachments/assets/aeb2b4b5-2fa2-40e7-abc7-b04964531911" />
 <img width="873" height="278" alt="image" src="https://github.com/user-attachments/assets/09c18ff0-e0dd-4943-9055-3c34a6d38462" />
+
 - Поддерживает:
   - передачу данных с ПЛИС на ПК
   - приём управляющих слов с ПК (START / STOP)
