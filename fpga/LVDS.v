@@ -1,30 +1,30 @@
-`timescale 1ns / 1ps
+п»ї`timescale 1ns / 1ps
 
 module LVDS #(
 	parameter LVDS_LEN = 8
 )(
-	input  [1:0] 	Clock_diff,
+	input  [1:0] 			Clock_diff,
 	input  [LVDS_LEN-1:0] 	Data_p,
 	input  [LVDS_LEN-1:0] 	Data_n,
-	input  [1:0] 	Strob_diff,	
+	input  [1:0] 			Strob_diff,	
 	output [LVDS_LEN-1:0]   DataOUT,
-   output 			StrobOUT,
-	output 			ClockOUT
+    output 					StrobOUT,
+	output 					ClockOUT
     );
 	 
 	//---------------------------------------------------------------------
-	// Дополнительные сигналы
+	// Р”РѕРїРѕР»РЅРёС‚РµР»СЊРЅС‹Рµ СЃРёРіРЅР°Р»С‹
 	//--------------------------------------------------------------------- 
-	// Сигналы для пропуска через входные буфферы
+	// РЎРёРіРЅР°Р»С‹ РґР»СЏ РїСЂРѕРїСѓСЃРєР° С‡РµСЂРµР· РІС…РѕРґРЅС‹Рµ Р±СѓС„С„РµСЂС‹
 	wire [LVDS_LEN-1:0] 	data_tx;	
 	wire clock_out;
 	wire strob_out;	
 	
-	reg [LVDS_LEN-1:0] 	data_rx;		// Данные после автомата считывающиеся по спадающему фронту
+	reg [LVDS_LEN-1:0] 	data_rx;		// Р”Р°РЅРЅС‹Рµ РїРѕСЃР»Рµ Р°РІС‚РѕРјР°С‚Р° СЃС‡РёС‚С‹РІР°СЋС‰РёРµСЃСЏ РїРѕ СЃРїР°РґР°СЋС‰РµРјСѓ С„СЂРѕРЅС‚Сѓ
 	reg strob_rx;
 	
 	//---------------------------------------------------------------------
-	// Входные буферы
+	// Р’С…РѕРґРЅС‹Рµ Р±СѓС„РµСЂС‹
 	//---------------------------------------------------------------------
 	IBUFDS #(
 		.IOSTANDARD("DEFAULT") // Specify the output I/O standard
@@ -57,15 +57,15 @@ module LVDS #(
 	
 
 	//---------------------------------------------------------------------
-	// Считывание данных по спадающему фронту
+	// РЎС‡РёС‚С‹РІР°РЅРёРµ РґР°РЅРЅС‹С… РїРѕ СЃРїР°РґР°СЋС‰РµРјСѓ С„СЂРѕРЅС‚Сѓ
 	//---------------------------------------------------------------------
 	always @(negedge clock_out) begin 
-		data_rx <= data_tx;
+		data_rx  <= data_tx;
 		strob_rx <= strob_out;
 	end
 	
 	assign DataOUT 	= data_rx;
-	assign StrobOUT 	= strob_rx;
+	assign StrobOUT = strob_rx;
 	assign ClockOUT	= clock_out;
 
 endmodule

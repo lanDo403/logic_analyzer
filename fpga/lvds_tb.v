@@ -1,8 +1,8 @@
-`timescale 1ns / 1ps
+п»ї`timescale 1ns / 1ps
 
 // ------------------------------------------------------------
-// Поведенческая заглушка IBUFDS для симуляции (ISim).
-// В реальном синтезе используется примитив Xilinx.
+// РџРѕРІРµРґРµРЅС‡РµСЃРєР°СЏ Р·Р°РіР»СѓС€РєР° IBUFDS РґР»СЏ СЃРёРјСѓР»СЏС†РёРё (ISim).
+// Р’ СЂРµР°Р»СЊРЅРѕРј СЃРёРЅС‚РµР·Рµ РёСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ РїСЂРёРјРёС‚РёРІ Xilinx.
 // ------------------------------------------------------------
 module IBUFDS #(parameter IOSTANDARD="DEFAULT") (
    output wire O,
@@ -15,14 +15,14 @@ endmodule
 
 module lvds_tb;
 
-   // Параметры теста
-   localparam integer TOTAL_WORDS = 3402;   // всего байтов во входных файлах
-   localparam integer PAUSE_LEN   = 16;     // длина паузы (FF FF ... FF)
+   // РџР°СЂР°РјРµС‚СЂС‹ С‚РµСЃС‚Р°
+   localparam integer TOTAL_WORDS = 3402;   // РІСЃРµРіРѕ Р±Р°Р№С‚РѕРІ РІРѕ РІС…РѕРґРЅС‹С… С„Р°Р№Р»Р°С…
+   localparam integer PAUSE_LEN   = 16;     // РґР»РёРЅР° РїР°СѓР·С‹ (FF FF ... FF)
 
    localparam integer LVDS_LEN = 8;
    localparam integer DATA_LEN = 32;
 
-   // Сигналы тестбенча
+   // РЎРёРіРЅР°Р»С‹ С‚РµСЃС‚Р±РµРЅС‡Р°
    reg tb_clock = 1'b0;
    reg tb_strob = 1'b0;
    reg rst_n    = 1'b0;
@@ -33,14 +33,14 @@ module lvds_tb;
    wire [1:0] clock_diff = {~tb_clock, tb_clock};
    wire [1:0] strob_diff = {~tb_strob, tb_strob};
 
-   // Частота 50 МГц
+   // Р§Р°СЃС‚РѕС‚Р° 50 РњР“С†
    always #10 tb_clock = ~tb_clock;
 
-   // Данные из файлов
+   // Р”Р°РЅРЅС‹Рµ РёР· С„Р°Р№Р»РѕРІ
    reg [7:0] byte_seq_p [0:TOTAL_WORDS-1];
    reg [7:0] byte_seq_n [0:TOTAL_WORDS-1];
 
-   // Ожидаемые 32-битные слова (только при strobe=1)
+   // РћР¶РёРґР°РµРјС‹Рµ 32-Р±РёС‚РЅС‹Рµ СЃР»РѕРІР° (С‚РѕР»СЊРєРѕ РїСЂРё strobe=1)
    reg [31:0] exp_words [0:(TOTAL_WORDS/4)];
    integer    exp_words_n;
    integer    got_words_n;
@@ -78,10 +78,10 @@ module lvds_tb;
    );
 
    // =========================================================
-   // TASK'И
+   // TASK'Р
    // =========================================================
 
-   // Сброс
+   // РЎР±СЂРѕСЃ
    task tb_reset;
       integer n;
       begin
@@ -97,7 +97,7 @@ module lvds_tb;
    endtask
 
 
-   // Загрузка данных из файлов data_p / data_n
+   // Р—Р°РіСЂСѓР·РєР° РґР°РЅРЅС‹С… РёР· С„Р°Р№Р»РѕРІ data_p / data_n
    task load_vectors;
       integer fd_p, fd_n;
       integer i, r;
@@ -105,7 +105,7 @@ module lvds_tb;
          fd_p = $fopen("data_p", "r");
          fd_n = $fopen("data_n", "r");
          if (fd_p == 0 || fd_n == 0) begin
-            $display("ОШИБКА: не удалось открыть файлы data_p или data_n");
+            $display("РћРЁРР‘РљРђ: РЅРµ СѓРґР°Р»РѕСЃСЊ РѕС‚РєСЂС‹С‚СЊ С„Р°Р№Р»С‹ data_p РёР»Рё data_n");
             #1000;
             $finish;
          end
@@ -121,7 +121,7 @@ module lvds_tb;
    endtask
 
 
-   // Проверка: начинается ли в позиции idx пауза (PAUSE_LEN байтов FF)
+   // РџСЂРѕРІРµСЂРєР°: РЅР°С‡РёРЅР°РµС‚СЃСЏ Р»Рё РІ РїРѕР·РёС†РёРё idx РїР°СѓР·Р° (PAUSE_LEN Р±Р°Р№С‚РѕРІ FF)
       // ????????: ?????????? ?? ? ??????? idx ????? (FF 00 00 00 x4)
    task is_pause_at(
       input  integer idx,
@@ -145,7 +145,7 @@ module lvds_tb;
    endtask
 
 
-   // Формирование ожидаемых 32-битных слов (пропуская паузы)
+   // Р¤РѕСЂРјРёСЂРѕРІР°РЅРёРµ РѕР¶РёРґР°РµРјС‹С… 32-Р±РёС‚РЅС‹С… СЃР»РѕРІ (РїСЂРѕРїСѓСЃРєР°СЏ РїР°СѓР·С‹)
    task build_expected_words;
       integer i;
       reg [31:0] w;
@@ -179,12 +179,12 @@ module lvds_tb;
          end
 
          if (cnt != 2'd0)
-            $display("ПРЕДУПРЕЖДЕНИЕ: количество валидных байтов не кратно 4");
+            $display("РџР Р•Р”РЈРџР Р•Р–Р”Р•РќРР•: РєРѕР»РёС‡РµСЃС‚РІРѕ РІР°Р»РёРґРЅС‹С… Р±Р°Р№С‚РѕРІ РЅРµ РєСЂР°С‚РЅРѕ 4");
       end
    endtask
 
 
-   // Передача одного байта
+   // РџРµСЂРµРґР°С‡Р° РѕРґРЅРѕРіРѕ Р±Р°Р№С‚Р°
    task send_one_byte(input [7:0] bp, input [7:0] bn, input strobe);
       begin
          @(posedge tb_clock);
@@ -195,7 +195,7 @@ module lvds_tb;
    endtask
 
 
-   // Передача всех данных с автоматическим управлением strobe
+   // РџРµСЂРµРґР°С‡Р° РІСЃРµС… РґР°РЅРЅС‹С… СЃ Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРёРј СѓРїСЂР°РІР»РµРЅРёРµРј strobe
    task send_all;
       integer idx;
       integer t;
@@ -223,15 +223,15 @@ module lvds_tb;
    endtask
 
 
-   // Проверка слова, полученного из packer
+   // РџСЂРѕРІРµСЂРєР° СЃР»РѕРІР°, РїРѕР»СѓС‡РµРЅРЅРѕРіРѕ РёР· packer
    task expect_packer_word(input integer wi, input [31:0] got);
       begin
          if (wi >= exp_words_n) begin
-            $display("ОШИБКА: получено лишнее слово [%0d] = %h", wi, got);
+            $display("РћРЁРР‘РљРђ: РїРѕР»СѓС‡РµРЅРѕ Р»РёС€РЅРµРµ СЃР»РѕРІРѕ [%0d] = %h", wi, got);
             $stop;
          end
          if (got !== exp_words[wi]) begin
-            $display("ОШИБКА слова [%0d]: получено=%h ожидается=%h",
+            $display("РћРЁРР‘РљРђ СЃР»РѕРІР° [%0d]: РїРѕР»СѓС‡РµРЅРѕ=%h РѕР¶РёРґР°РµС‚СЃСЏ=%h",
                      wi, got, exp_words[wi]);
             $stop;
          end
@@ -239,7 +239,7 @@ module lvds_tb;
    endtask
 
 
-   // Ожидание N тактов
+   // РћР¶РёРґР°РЅРёРµ N С‚Р°РєС‚РѕРІ
    task wait_cycles(input integer cycles);
       integer k;
       begin
@@ -255,30 +255,30 @@ module lvds_tb;
       got_words_n = 0;
 
       load_vectors();
-		$display("Первые байты из файлов: data_p[0]=%h data_n[0]=%h", byte_seq_p[0], byte_seq_n[0]);
+		$display("РџРµСЂРІС‹Рµ Р±Р°Р№С‚С‹ РёР· С„Р°Р№Р»РѕРІ: data_p[0]=%h data_n[0]=%h", byte_seq_p[0], byte_seq_n[0]);
       build_expected_words();
       tb_reset();
 
       send_all();
 
-      // Дать данным дойти по пайплайну
+      // Р”Р°С‚СЊ РґР°РЅРЅС‹Рј РґРѕР№С‚Рё РїРѕ РїР°Р№РїР»Р°Р№РЅСѓ
       wait_cycles(64);
 
-      $display("ТЕСТ ЗАВЕРШЁН. Ожидалось слов=%0d, Получено слов=%0d",
+      $display("РўР•РЎРў Р—РђР’Р•Р РЁРЃРќ. РћР¶РёРґР°Р»РѕСЃСЊ СЃР»РѕРІ=%0d, РџРѕР»СѓС‡РµРЅРѕ СЃР»РѕРІ=%0d",
                exp_words_n, got_words_n);
 
       if (got_words_n !== exp_words_n) begin
-         $display("ОШИБКА: количество слов не совпадает");
+         $display("РћРЁРР‘РљРђ: РєРѕР»РёС‡РµСЃС‚РІРѕ СЃР»РѕРІ РЅРµ СЃРѕРІРїР°РґР°РµС‚");
          $stop;
       end
 
-      $display("ТЕСТ ПРОЙДЕН УСПЕШНО");
+      $display("РўР•РЎРў РџР РћР™Р”Р•Рќ РЈРЎРџР•РЁРќРћ");
       $stop;
    end
 
 
    // =========================================================
-   // Монитор выхода packer
+   // РњРѕРЅРёС‚РѕСЂ РІС‹С…РѕРґР° packer
    // =========================================================
    always @(posedge ClockOUT) begin
       if (!rst_n)

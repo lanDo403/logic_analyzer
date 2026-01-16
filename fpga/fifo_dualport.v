@@ -1,4 +1,4 @@
-`timescale 1ns / 1ps
+п»ї`timescale 1ns / 1ps
 
 module fifo_dualport#(
 	parameter DATA_LEN = 32,
@@ -6,18 +6,18 @@ module fifo_dualport#(
 	parameter ADDR_LEN = $clog2(DEPTH)
 )(
 	input 						clk_wr,
-	input							clk_rd,
+	input						clk_rd,
 	input 						rst_n,			
-	input 						wr_en_in, // Разрешение на запись в память после упаковщика	
-	input 						rd_en_in_n,  // Разрешение на чтение из FT601
-	input [DATA_LEN-1:0] 	sram_data_r, // Данные, которые читаются из памяти
-	input [DATA_LEN-1:0] 	data_in,	// Данные, поступившие извне, которые еще не в памяти, но должны записаться туда
-	output [DATA_LEN-1:0]  	data_out, // Данные, которые попадут в FSM -> FT601
-	output [DATA_LEN-1:0]	sram_data_w, // Данные, которые записываются в память
-	output 						wr_en_out, // Разрешение на запись в память
-	output 						rd_en_out_n, // Разрешение на чтение в память
-	output [ADDR_LEN-1:0]	wr_addr_out,
-	output [ADDR_LEN-1:0]	rd_addr_out,
+	input 						wr_en_in, // Р Р°Р·СЂРµС€РµРЅРёРµ РЅР° Р·Р°РїРёСЃСЊ РІ РїР°РјСЏС‚СЊ РїРѕСЃР»Рµ СѓРїР°РєРѕРІС‰РёРєР°	
+	input 						rd_en_in_n,  // Р Р°Р·СЂРµС€РµРЅРёРµ РЅР° С‡С‚РµРЅРёРµ РёР· FT601
+	input [DATA_LEN-1:0] 		sram_data_r, // Р”Р°РЅРЅС‹Рµ, РєРѕС‚РѕСЂС‹Рµ С‡РёС‚Р°СЋС‚СЃСЏ РёР· РїР°РјСЏС‚Рё
+	input [DATA_LEN-1:0] 		data_in,	// Р”Р°РЅРЅС‹Рµ, РїРѕСЃС‚СѓРїРёРІС€РёРµ РёР·РІРЅРµ, РєРѕС‚РѕСЂС‹Рµ РµС‰Рµ РЅРµ РІ РїР°РјСЏС‚Рё, РЅРѕ РґРѕР»Р¶РЅС‹ Р·Р°РїРёСЃР°С‚СЊСЃСЏ С‚СѓРґР°
+	output [DATA_LEN-1:0]  		data_out, // Р”Р°РЅРЅС‹Рµ, РєРѕС‚РѕСЂС‹Рµ РїРѕРїР°РґСѓС‚ РІ FSM -> FT601
+	output [DATA_LEN-1:0]		sram_data_w, // Р”Р°РЅРЅС‹Рµ, РєРѕС‚РѕСЂС‹Рµ Р·Р°РїРёСЃС‹РІР°СЋС‚СЃСЏ РІ РїР°РјСЏС‚СЊ
+	output 						wr_en_out, // Р Р°Р·СЂРµС€РµРЅРёРµ РЅР° Р·Р°РїРёСЃСЊ РІ РїР°РјСЏС‚СЊ
+	output 						rd_en_out_n, // Р Р°Р·СЂРµС€РµРЅРёРµ РЅР° С‡С‚РµРЅРёРµ РІ РїР°РјСЏС‚СЊ
+	output [ADDR_LEN-1:0]		wr_addr_out,
+	output [ADDR_LEN-1:0]		rd_addr_out,
 	output 						full,			
 	output 						empty		
     ); 
@@ -34,7 +34,7 @@ module fifo_dualport#(
 	reg [ADDR_LEN:0] rd_ptr_gray_sync1, rd_ptr_gray_sync2;
 	
 	//-------------------------------------------------------------
-	// Указатели на запись(адрес и грея)
+	// РЈРєР°Р·Р°С‚РµР»Рё РЅР° Р·Р°РїРёСЃСЊ(Р°РґСЂРµСЃ Рё РіСЂРµСЏ)
 	//-------------------------------------------------------------
 	always @(negedge clk_wr or negedge rst_n) begin
 		if (!rst_n) begin
@@ -55,7 +55,7 @@ module fifo_dualport#(
 	end
 	
 	//-------------------------------------------------------------
-	// Указатели на чтение(адрес и грея)
+	// РЈРєР°Р·Р°С‚РµР»Рё РЅР° С‡С‚РµРЅРёРµ(Р°РґСЂРµСЃ Рё РіСЂРµСЏ)
 	//-------------------------------------------------------------
 	always @(negedge clk_rd or negedge rst_n) begin
 		if (!rst_n) begin
@@ -78,7 +78,7 @@ module fifo_dualport#(
 	end
 	
 	//-------------------------------------------------------------
-	// Синхронизация указателей грея
+	// РЎРёРЅС…СЂРѕРЅРёР·Р°С†РёСЏ СѓРєР°Р·Р°С‚РµР»РµР№ РіСЂРµСЏ
 	//-------------------------------------------------------------
 	always @(negedge clk_wr or negedge rst_n) begin
 		if (!rst_n) begin
@@ -103,7 +103,7 @@ module fifo_dualport#(
 	end
 	
 	//-------------------------------------------------------------
-	// Логика выходных сигналов
+	// Р›РѕРіРёРєР° РІС‹С…РѕРґРЅС‹С… СЃРёРіРЅР°Р»РѕРІ
 	//-------------------------------------------------------------
 	assign empty 	= (rd_ptr_gray == wr_ptr_gray_sync2);
 	assign full 	= (wr_ptr_gray_next == {~rd_ptr_gray_sync2[ADDR_LEN:ADDR_LEN-1], rd_ptr_gray_sync2[ADDR_LEN-2:0]});

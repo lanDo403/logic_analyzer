@@ -1,4 +1,4 @@
-`timescale 1ns / 1ps
+п»ї`timescale 1ns / 1ps
 
 module fifo_top #(
 	parameter LVDS_LEN = 8,
@@ -8,29 +8,29 @@ module fifo_top #(
 	parameter ADDR_LEN = $clog2(FIFO_DEPTH)
 )(
 	// LVDS signals from FPGA logic
-	input  [1:0] 				Clock_diff,
+	input  [1:0] 			Clock_diff,
 	input  [LVDS_LEN-1:0] 	Data_p,
 	input  [LVDS_LEN-1:0] 	Data_n,
-	input  [1:0] 				Strob_diff,	
-   input 						CLK,		// Clock signal from FT601
-   input 						RESET_N,	// Reset signal from FT601	
-   input 						TXE_N,	// Trancieve empty signal from FT601
-   input 						RXF_N,	//	Receive full signal from FT601
-   output 						OE_N,		// Output enable signal to FT601
-   output 						WR_N,		// Write enable signal to FT601
-   output 						RD_N,		// Read enable signal to FT601
+	input  [1:0] 			Strob_diff,	
+   input 					CLK,		// Clock signal from FT601
+   input 					RESET_N,	// Reset signal from FT601	
+   input 					TXE_N,	// Trancieve empty signal from FT601
+   input 					RXF_N,	//	Receive full signal from FT601
+   output 					OE_N,		// Output enable signal to FT601
+   output 					WR_N,		// Write enable signal to FT601
+   output 					RD_N,		// Read enable signal to FT601
 	inout [BE_LEN-1:0] 		BE,		// In and out byte enable bus connected to FT601
    inout [DATA_LEN-1:0] 	DATA		// In and out data bus connected to FT601
     );
-	// Сигналы в подключениях к модулям с исключительно верхними регистрами - сигналы FT601,
-	//	по этой логике легко увидеть, где конкретно эти сигналы подключаются
+	// РЎРёРіРЅР°Р»С‹ РІ РїРѕРґРєР»СЋС‡РµРЅРёСЏС… Рє РјРѕРґСѓР»СЏРј СЃ РёСЃРєР»СЋС‡РёС‚РµР»СЊРЅРѕ РІРµСЂС…РЅРёРјРё СЂРµРіРёСЃС‚СЂР°РјРё - СЃРёРіРЅР°Р»С‹ FT601,
+	//	РїРѕ СЌС‚РѕР№ Р»РѕРіРёРєРµ Р»РµРіРєРѕ СѓРІРёРґРµС‚СЊ, РіРґРµ РєРѕРЅРєСЂРµС‚РЅРѕ СЌС‚Рё СЃРёРіРЅР°Р»С‹ РїРѕРґРєР»СЋС‡Р°СЋС‚СЃСЏ
 	 
 	//-------------------------------------------------------------
-	// Подключение к приёмнику LVDS
+	// РџРѕРґРєР»СЋС‡РµРЅРёРµ Рє РїСЂРёС‘РјРЅРёРєСѓ LVDS
 	//------------------------------------------------------------- 
-	wire [LVDS_LEN-1:0] 	dout_lvds; 	// От модуля приёмника LVDS в модуль упаковщик 8бит-32бита
-	wire 						valid_lvds;		// LVDS строб (сигнал валидности)	
-	wire 						wr_clk;			// LVDS тактовая частота, которая будет использоваться для записи в FIFO
+	wire [LVDS_LEN-1:0] dout_lvds; 	// РћС‚ РјРѕРґСѓР»СЏ РїСЂРёС‘РјРЅРёРєР° LVDS РІ РјРѕРґСѓР»СЊ СѓРїР°РєРѕРІС‰РёРє 8Р±РёС‚-32Р±РёС‚Р°
+	wire valid_lvds;					// LVDS СЃС‚СЂРѕР± (СЃРёРіРЅР°Р» РІР°Р»РёРґРЅРѕСЃС‚Рё)	
+	wire wr_clk;						// LVDS С‚Р°РєС‚РѕРІР°СЏ С‡Р°СЃС‚РѕС‚Р°, РєРѕС‚РѕСЂР°СЏ Р±СѓРґРµС‚ РёСЃРїРѕР»СЊР·РѕРІР°С‚СЊСЃСЏ РґР»СЏ Р·Р°РїРёСЃРё РІ FIFO
 
 	LVDS lvds(
 		.Clock_diff(Clock_diff),
@@ -43,11 +43,11 @@ module fifo_top #(
 	);
 	
 	//-------------------------------------------------------------
-	// Подключение к упаковщику 8 в 32 бита
+	// РџРѕРґРєР»СЋС‡РµРЅРёРµ Рє СѓРїР°РєРѕРІС‰РёРєСѓ 8 РІ 32 Р±РёС‚Р°
 	//-------------------------------------------------------------
-	wire 						valid_in_packer;
-	wire [LVDS_LEN-1:0] 	din_packer;
-	wire 						valid_out_packer;
+	wire valid_in_packer;
+	wire valid_out_packer;
+	wire [LVDS_LEN-1:0] din_packer;
 	wire [DATA_LEN-1:0]	dout_packer;
 	
 	assign valid_in_packer = valid_lvds;
@@ -63,18 +63,17 @@ module fifo_top #(
 	);
 	
 	//-------------------------------------------------------------
-	// Подключение к FIFO
+	// РџРѕРґРєР»СЋС‡РµРЅРёРµ Рє FIFO
 	//-------------------------------------------------------------
+	wire wr_en_fifo_in;
 	wire [DATA_LEN-1:0]	din_fifo;
-	wire 						wr_en_fifo_in;
 	wire [DATA_LEN-1:0]	dout_fifo;
-	wire 						full_fifo;
-	wire 						empty_fifo;
+	wire full_fifo;
+	wire empty_fifo;
 	wire wr_en_fifo_out, rd_en_fifo_out_n;
 	wire [ADDR_LEN-1:0] wr_addr_fifo_out, rd_addr_fifo_out;
-	// Данные в/из SRAM
-	wire [DATA_LEN-1:0] sram_in, sram_out;
-	wire fifo_pop_n;	// Сигнал, который определяет, когда необходимо вытаскивать данные из fifo_dualport в fifo_fsm
+	wire [DATA_LEN-1:0] sram_in, sram_out; 	// Р”Р°РЅРЅС‹Рµ РІ/РёР· SRAM
+	wire fifo_pop_n;	// РЎРёРіРЅР°Р», РєРѕС‚РѕСЂС‹Р№ РѕРїСЂРµРґРµР»СЏРµС‚, РєРѕРіРґР° РЅРµРѕР±С…РѕРґРёРјРѕ РІС‹С‚Р°СЃРєРёРІР°С‚СЊ РґР°РЅРЅС‹Рµ РёР· fifo_dualport РІ fifo_fsm
 	
 	assign wr_en_fifo_in = valid_out_packer;
 	assign din_fifo = dout_packer;
@@ -102,7 +101,7 @@ module fifo_top #(
 	
 	
 	//-------------------------------------------------------------
-	// Подключение к SRAM
+	// РџРѕРґРєР»СЋС‡РµРЅРёРµ Рє SRAM
 	//-------------------------------------------------------------
 	wire wr_en_sram, rd_en_sram_n;
 	wire [ADDR_LEN-1:0] wr_addr_sram, rd_addr_sram;
@@ -127,10 +126,10 @@ module fifo_top #(
 	);
 	
 	//-------------------------------------------------------------
-	// Подключение к FSM 
+	// РџРѕРґРєР»СЋС‡РµРЅРёРµ Рє FSM 
 	//-------------------------------------------------------------
-	// tx означает "на ПЛИС от FT601"
-	// rx means "от ПЛИС на FT601"
+	// tx РѕР·РЅР°С‡Р°РµС‚ "РЅР° РџР›РРЎ РѕС‚ FT601"
+	// rx means "РѕС‚ РџР›РРЎ РЅР° FT601"
 	wire [DATA_LEN-1:0]  fsm_in;
 	wire [DATA_LEN-1:0] 	rx_data;
 	wire [DATA_LEN-1:0]	tx_data;
@@ -139,13 +138,13 @@ module fifo_top #(
 	wire oe_n;
 	wire wr_n;
 	wire rd_n;
-	wire drive_tx; // Сигнал, определяющий момент времени для записи по шине DATA в FT601, дабы не было конфликтов записи и чтения на шине DATA
+	wire drive_tx; // РЎРёРіРЅР°Р», РѕРїСЂРµРґРµР»СЏСЋС‰РёР№ РјРѕРјРµРЅС‚ РІСЂРµРјРµРЅРё РґР»СЏ Р·Р°РїРёСЃРё РїРѕ С€РёРЅРµ DATA РІ FT601, РґР°Р±С‹ РЅРµ Р±С‹Р»Рѕ РєРѕРЅС„Р»РёРєС‚РѕРІ Р·Р°РїРёСЃРё Рё С‡С‚РµРЅРёСЏ РЅР° С€РёРЅРµ DATA
 	
 	assign fsm_in = dout_fifo;
-	assign DATA 	= drive_tx ? tx_data : 32'hzzzzzzzz; // Отправка данных на FT601 по общей шине записи/чтения данных 
-	assign rx_data = DATA; // Чтение данных с FT601
-	assign BE 		= drive_tx ? tx_be : 4'hz; // Отправка BE на FT601 по общей шине записи/чтения BE
-	assign rx_be 	= BE; // Чтение BE с FT601
+	assign DATA 	= drive_tx ? tx_data : 32'hzzzzzzzz; // РћС‚РїСЂР°РІРєР° РґР°РЅРЅС‹С… РЅР° FT601 РїРѕ РѕР±С‰РµР№ С€РёРЅРµ Р·Р°РїРёСЃРё/С‡С‚РµРЅРёСЏ РґР°РЅРЅС‹С… 
+	assign BE 		= drive_tx ? tx_be : 4'hz; // РћС‚РїСЂР°РІРєР° BE РЅР° FT601 РїРѕ РѕР±С‰РµР№ С€РёРЅРµ Р·Р°РїРёСЃРё/С‡С‚РµРЅРёСЏ BE
+	assign rx_data  = DATA; // Р§С‚РµРЅРёРµ РґР°РЅРЅС‹С… СЃ FT601
+	assign rx_be 	= BE; // Р§С‚РµРЅРёРµ BE СЃ FT601
 	assign OE_N = oe_n;
 	assign WR_N = wr_n;
 	assign RD_N = rd_n;

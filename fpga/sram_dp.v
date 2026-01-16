@@ -25,10 +25,10 @@ module sram_dp
 	parameter ADDR_LEN = $clog2(DEPTH)
 )
 (
-	input							wr_clk,
-	input 						rd_clk,
-	input 						wr_en,
-	input 						rd_en_n,
+	input					wr_clk,
+	input 					rd_clk,
+	input 					wr_en,
+	input 					rd_en_n,
 	input [ADDR_LEN-1:0] 	wr_addr,
 	input [ADDR_LEN-1:0] 	rd_addr,
 	input [DATA_LEN-1:0]  	data_i,

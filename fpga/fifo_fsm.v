@@ -1,4 +1,4 @@
-`timescale 1ns / 1ps
+п»ї`timescale 1ns / 1ps
 
 module fifo_fsm
 #(
@@ -6,53 +6,52 @@ module fifo_fsm
 	parameter BE_LEN   = 4
 )
 (
-	//TODO: флаг be от фифо
 	input  						rst_n,
 	input  						clk,
-	// Флаги с FT601
-	input  						txe_n,		// Trancieve empty поступает с FT601 
-	input  						rxf_n,		// Recieve full поступает с FT601
-	input  [DATA_LEN-1:0]   fsm_data_in,	// Фифо плис лвдс
-	input  [DATA_LEN-1:0]   rx_data,		// Данные, поступающие с FT601
-	input  [BE_LEN-1:0] 		be_i,			// Byte enable, поступающий с FT601
+	// Р¤Р»Р°РіРё СЃ FT601
+	input  						txe_n,		// Trancieve empty РїРѕСЃС‚СѓРїР°РµС‚ СЃ FT601 
+	input  						rxf_n,		// Recieve full РїРѕСЃС‚СѓРїР°РµС‚ СЃ FT601
+	input  [DATA_LEN-1:0]   	fsm_data_in,	// Р¤РёС„Рѕ РїР»РёСЃ Р»РІРґСЃ
+	input  [DATA_LEN-1:0]   	rx_data,		// Р”Р°РЅРЅС‹Рµ, РїРѕСЃС‚СѓРїР°СЋС‰РёРµ СЃ FT601
+	input  [BE_LEN-1:0] 		be_i,			// Byte enable, РїРѕСЃС‚СѓРїР°СЋС‰РёР№ СЃ FT601
 	input 						full_fifo,
 	input 						empty_fifo,
 	
-	output [DATA_LEN-1:0]  	tx_data,		// Данные, отправляющиеся на FT601
-	output [BE_LEN-1:0]   	be_o,			// Byte enable, отправляющийся на FT601
-	output  						wr_n,    
+	output [DATA_LEN-1:0]  		tx_data,		// Р”Р°РЅРЅС‹Рµ, РѕС‚РїСЂР°РІР»СЏСЋС‰РёРµСЃСЏ РЅР° FT601
+	output [BE_LEN-1:0]   		be_o,			// Byte enable, РѕС‚РїСЂР°РІР»СЏСЋС‰РёР№СЃСЏ РЅР° FT601
+	output  					wr_n,    
 	output   					rd_n,
 	output   					oe_n,
 	output 						drive_tx,
 	output 						fifo_pop_n
     );
 	 
-	// Параметры
+	// РџР°СЂР°РјРµС‚СЂС‹
 	localparam IDLE   = 3'd0;
 	localparam MODE   = 3'd1;
-	localparam W_POP 	= 3'd2;
-	localparam W_PREP = 3'd3;  // выставить DATA/BE
-	localparam W_STB  = 3'd4;  // WR# импульс 1 такт
-	localparam R_OE   = 3'd5;  // OE#=0, подождать 1 такт
-	localparam R_STB  = 3'd6;  // RD# импульс 1 такт
-	localparam R_CAP  = 3'd7;  // захват данных
+	localparam W_POP  = 3'd2;
+	localparam W_PREP = 3'd3;  
+	localparam W_STB  = 3'd4;  
+	localparam R_OE   = 3'd5;  
+	localparam R_STB  = 3'd6;  
+	localparam R_CAP  = 3'd7;  
 	
-	// Состояния
+	// РЎРѕСЃС‚РѕСЏРЅРёСЏ
 	reg [2:0] next_state;
 	reg [2:0] state;
 	
-	// Дополнительные сигналы
+	// Р”РѕРїРѕР»РЅРёС‚РµР»СЊРЅС‹Рµ СЃРёРіРЅР°Р»С‹
 	reg [DATA_LEN-1:0] 	tx_data_ff, rx_data_ff;
-	reg [BE_LEN-1:0] 		be_ff;
-	reg 						wr_ff, rd_ff, oe_ff;
-	reg 						drive_tx_ff;
-	reg 						fifo_pop_n_ff;
+	reg [BE_LEN-1:0] 	be_ff;
+	reg wr_ff, rd_ff, oe_ff;
+	reg drive_tx_ff;
+	reg fifo_pop_n_ff;
 	
-	// Управляющие сигнал с ПО на ПК, цепочка такая: ПК -> FT601 -> ПЛИС
+	// РЈРїСЂР°РІР»СЏСЋС‰РёРµ СЃРёРіРЅР°Р» СЃ РџРћ РЅР° РџРљ, С†РµРїРѕС‡РєР° С‚Р°РєР°СЏ: РџРљ -> FT601 -> РџР›РРЎ
 	reg run_en;
 
 	//-------------------------------------------------------------
-	// state логика
+	// state Р»РѕРіРёРєР°
 	//-------------------------------------------------------------
 	always @(negedge clk or negedge rst_n) begin
 		if (!rst_n)
@@ -62,32 +61,32 @@ module fifo_fsm
 	end
 	
 	//-------------------------------------------------------------
-	// next_state логика
+	// next_state Р»РѕРіРёРєР°
 	//-------------------------------------------------------------	
 	always @(*) begin
 		next_state = state;
 		case (state)
 			IDLE: begin
-				if (run_en) next_state = MODE;
-				else        next_state = IDLE;
+				if (run_en) 					next_state = MODE;
+				else        					next_state = IDLE;
 			end
 			MODE: begin
-				if (!run_en) 							next_state = IDLE;
-				else if (!rxf_n)						next_state = R_OE;
+				if (!run_en) 					next_state = IDLE;
+				else if (!rxf_n)				next_state = R_OE;
 				else if (!txe_n && !empty_fifo)	next_state = W_POP;
-				else										next_state = MODE;
+				else							next_state = MODE;
 			end
 			W_POP: begin
-				if (!run_en)         next_state = IDLE;
-				else if (txe_n)      next_state = MODE;
-				else if (empty_fifo)	next_state = MODE;
-				else                 next_state = W_PREP;
+				if (!run_en)         			next_state = IDLE;
+				else if (txe_n)      			next_state = MODE;
+				else if (empty_fifo) 			next_state = MODE;
+				else                 			next_state = W_PREP;
 			end
 			W_PREP: begin
-				if (!run_en)         next_state = IDLE;
-				else if (txe_n)      next_state = MODE;     // место кончилось
-				else if (empty_fifo)	next_state = MODE;     // данных нет
-				else                 next_state = W_STB;
+				if (!run_en)         			next_state = IDLE;
+				else if (txe_n)      			next_state = MODE;
+				else if (empty_fifo)			next_state = MODE;
+				else                 			next_state = W_STB;
 			end
 			W_STB: begin
 				if (!run_en)               		next_state = IDLE;
@@ -95,18 +94,18 @@ module fifo_fsm
 				else                       		next_state = MODE;
 			end
 			R_OE: begin
-				if (!run_en)		next_state = IDLE;
-				else if (rxf_n)	next_state = MODE;  // уже нечего читать
-				else					next_state = R_STB;
+				if (!run_en)					next_state = IDLE;
+				else if (rxf_n)					next_state = MODE;
+				else							next_state = R_STB;
 			end
 			R_STB: begin
-				if (!run_en)		next_state = IDLE;
-				else					next_state = R_CAP;
+				if (!run_en)					next_state = IDLE;
+				else							next_state = R_CAP;
 			end
 			R_CAP: begin
-				if (!run_en)      next_state = IDLE;
-				else if (!rxf_n)	next_state = R_OE;   // можно читать следующую команду
-				else              next_state = MODE;
+				if (!run_en)      				next_state = IDLE;
+				else if (!rxf_n)				next_state = R_OE; 
+				else              				next_state = MODE;
 			end
 			default: next_state = IDLE;
 		endcase
@@ -114,7 +113,7 @@ module fifo_fsm
 	
 	
 	//-------------------------------------------------------------
-	// Логика регистров
+	// Р›РѕРіРёРєР° СЂРµРіРёСЃС‚СЂРѕРІ
 	//-------------------------------------------------------------
 	always @(negedge clk or negedge rst_n) begin
 		if (!rst_n) begin
@@ -135,11 +134,11 @@ module fifo_fsm
 			fifo_pop_n_ff 	<= 1'b1;
 			case (state)
 			   IDLE, MODE: begin
-					// ждем
+					// Р¶РґРµРј
 			   end
 			   W_POP: begin
 					fifo_pop_n_ff <= 1'b0;  // 1-cycle pop
-				   // шину пока не драйвим и не стробим
+				   // С€РёРЅСѓ РїРѕРєР° РЅРµ РґСЂР°Р№РІРёРј Рё РЅРµ СЃС‚СЂРѕР±РёРј
 				   oe_ff       <= 1'b1;
 				   drive_tx_ff <= 1'b0;
 			   end
@@ -179,7 +178,7 @@ module fifo_fsm
 		if (!rst_n)
 			run_en <= 1'b0; 
 		else begin
-			// обновляем run_en только когда мы реально захватили новое слово команды
+			// РѕР±РЅРѕРІР»СЏРµРј run_en С‚РѕР»СЊРєРѕ РєРѕРіРґР° РјС‹ СЂРµР°Р»СЊРЅРѕ Р·Р°С…РІР°С‚РёР»Рё РЅРѕРІРѕРµ СЃР»РѕРІРѕ РєРѕРјР°РЅРґС‹
 			if (state == R_CAP) begin
 				if (rx_data_ff == 32'h11111111) run_en <= 1'b1;  // START
 				else if (rx_data_ff == 32'h00000000) run_en <= 1'b0;  // STOP
@@ -194,6 +193,5 @@ module fifo_fsm
 	assign oe_n = oe_ff;
 	assign drive_tx = drive_tx_ff;	
 	assign fifo_pop_n = fifo_pop_n_ff;
-	//?TODO: обработка информации с FT601(но по идее она не нужна, так как нет каких либо данных, поступающих с FT601)
 		
 endmodule
