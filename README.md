@@ -74,9 +74,11 @@ byte3 → [31:24]
   (режим **245 Synchronous FIFO**)
 
 <img src="https://github.com/user-attachments/assets/aeb2b4b5-2fa2-40e7-abc7-b04964531911" alt="Описание изображения">
+
 *Режим записи в FIFO FT601.*
 
 <img src="https://github.com/user-attachments/assets/09c18ff0-e0dd-4943-9055-3c34a6d38462" alt="Описание изображения">
+
 *Режим чтения в FIFO FT601.*
 
 - Поддерживает:
