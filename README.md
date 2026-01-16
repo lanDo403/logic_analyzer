@@ -72,8 +72,16 @@ byte3 → [31:24]
   - направлением шины данных (`drive_tx`)
 - Реализует временные диаграммы в соответствии с даташитом FT601  
   (режим **245 Synchronous FIFO**)
-  <img width="852" height="270" alt="image" src="https://github.com/user-attachments/assets/aeb2b4b5-2fa2-40e7-abc7-b04964531911" />
-<img width="873" height="278" alt="image" src="https://github.com/user-attachments/assets/09c18ff0-e0dd-4943-9055-3c34a6d38462" />
+<figure>
+  <img src="https://github.com/user-attachments/assets/aeb2b4b5-2fa2-40e7-abc7-b04964531911" alt="Описание изображения">
+  <figcaption>Режим записи в FIFO FT601.</figcaption>
+</figure>
+
+
+<figure>
+  <img src="https://github.com/user-attachments/assets/09c18ff0-e0dd-4943-9055-3c34a6d38462" alt="Описание изображения">
+  <figcaption>Режим чтения в FIFO FT601.</figcaption>
+</figure>
 
 - Поддерживает:
   - передачу данных с ПЛИС на ПК
@@ -99,6 +107,7 @@ byte3 → [31:24]
   <img src="https://github.com/user-attachments/assets/b0d7f6e2-dcbd-4bf3-92a7-9e430a089b93" alt="Описание изображения">
   <figcaption>Скриншот временной диаграммы LVDS-приема и правильной упаковки данных 8→32 бит.</figcaption>
 </figure>
+
 
 <figure>
   <img src="https://github.com/user-attachments/assets/4fbb9aa5-25ef-4625-862d-05e7645d4f6a" alt="Описание изображения">
