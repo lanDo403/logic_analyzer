@@ -95,7 +95,10 @@ byte3 → [31:24]
   - правильной упаковки 8→32 бит
   - (на следующем этапе) FIFO + SRAM
 - Тестбенч построен на `task`-ах, что упрощает расширение проверки на следующие модули
-![Скриншот временной диаграммы LVDS-приема и правильной упаковки данных 8→32 бит. Как видно на скриншоте, паузы соблюдаются.](<img width="1364" height="728" alt="image" src="https://github.com/user-attachments/assets/b0d7f6e2-dcbd-4bf3-92a7-9e430a089b93" />)
+<figure>
+  <img src="<img width="1364" height="728" alt="image" src="https://github.com/user-attachments/assets/b0d7f6e2-dcbd-4bf3-92a7-9e430a089b93" />" alt="Описание изображения">
+  <figcaption>Скриншот временной диаграммы LVDS-приема и правильной упаковки данных 8→32 бит. Как видно на скриншоте, паузы соблюдаются.</figcaption>
+</figure>
 <img width="1080" height="393" alt="image" src="https://github.com/user-attachments/assets/4fbb9aa5-25ef-4625-862d-05e7645d4f6a" />
 
 
