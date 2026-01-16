@@ -73,7 +73,7 @@ byte3 → [31:24]
 - Реализует временные диаграммы в соответствии с даташитом FT601  
   (режим **245 Synchronous FIFO**)
 
-<img src="https://github.com/user-attachments/assets/aeb2b4b5-2fa2-40e7-abc7-b04964531911" alt="Описание изображения">
+ <img src="https://github.com/user-attachments/assets/aeb2b4b5-2fa2-40e7-abc7-b04964531911" alt="Описание изображения">
 
 *Режим записи в FIFO FT601.*
 
