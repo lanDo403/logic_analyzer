@@ -99,6 +99,7 @@ byte3 → [31:24]
   <img src="https://github.com/user-attachments/assets/b0d7f6e2-dcbd-4bf3-92a7-9e430a089b93" alt="Описание изображения">
   <figcaption>Скриншот временной диаграммы LVDS-приема и правильной упаковки данных 8→32 бит.</figcaption>
 </figure>
+
 <figure>
   <img src="https://github.com/user-attachments/assets/4fbb9aa5-25ef-4625-862d-05e7645d4f6a" alt="Описание изображения">
   <figcaption>Скриншот полной временной диаграммы. Как видно на скриншоте, strob_out в определнные моменты времени, когда начинается последовательность байтов, обозначающая паузу, опускается в 0.</figcaption>
