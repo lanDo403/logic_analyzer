@@ -122,11 +122,13 @@ module lvds_tb;
 
 
    // ѕроверка: начинаетс€ ли в позиции idx пауза (PAUSE_LEN байтов FF)
+      // ????????: ?????????? ?? ? ??????? idx ????? (FF 00 00 00 x4)
    task is_pause_at(
       input  integer idx,
       output reg     is_pause
    );
       integer t;
+      reg [7:0] expected;
       begin
          is_pause = 1'b1;
 
@@ -134,7 +136,8 @@ module lvds_tb;
             is_pause = 1'b0;
          else begin
             for (t = 0; t < PAUSE_LEN; t = t + 1) begin
-               if (byte_seq_p[idx + t] !== 8'hFF)
+               expected = ((t % 4) == 0) ? 8'hFF : 8'h00;
+               if (byte_seq_p[idx + t] !== expected)
                   is_pause = 1'b0;
             end
          end
