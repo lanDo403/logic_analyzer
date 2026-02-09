@@ -27,8 +27,8 @@ module sram_dp
 (
 	input					wr_clk,
 	input 					rd_clk,
-	input 					wr_en,
-	input 					rd_en_n,
+	input 					wen,
+	input 					ren,
 	input [ADDR_LEN-1:0] 	wr_addr,
 	input [ADDR_LEN-1:0] 	rd_addr,
 	input [DATA_LEN-1:0]  	data_i,
@@ -38,13 +38,13 @@ module sram_dp
 	reg [DATA_LEN-1:0] sram [0:DEPTH-1];
 	reg [DATA_LEN-1:0] ram_data_ff;
 	
-	always @(negedge wr_clk) begin
-		if (wr_en)
+	always @(posedge wr_clk) begin
+		if (wen)
 			sram[wr_addr] <= data_i;
 	end
 	
-	always @(negedge rd_clk) begin
-		if (!rd_en_n)
+	always @(posedge rd_clk) begin
+		if (ren)
 			ram_data_ff <= sram[rd_addr];
 	end
 	

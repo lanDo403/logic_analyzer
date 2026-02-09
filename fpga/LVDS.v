@@ -1,71 +1,69 @@
-﻿`timescale 1ns / 1ps
+`timescale 1ns / 1ps
 
 module LVDS #(
 	parameter LVDS_LEN = 8
 )(
-	input  [1:0] 			Clock_diff,
-	input  [LVDS_LEN-1:0] 	Data_p,
-	input  [LVDS_LEN-1:0] 	Data_n,
-	input  [1:0] 			Strob_diff,	
-	output [LVDS_LEN-1:0]   DataOUT,
-    output 					StrobOUT,
-	output 					ClockOUT
+	input clk_i,
+	input strob_i,	
+	input [LVDS_LEN-1:0] data_i,
+	
+	output [LVDS_LEN-1:0] data_o,
+    output strob_o,
+	output clk_o
     );
 	 
 	//---------------------------------------------------------------------
 	// Дополнительные сигналы
 	//--------------------------------------------------------------------- 
 	// Сигналы для пропуска через входные буфферы
-	wire [LVDS_LEN-1:0] 	data_tx;	
-	wire clock_out;
-	wire strob_out;	
-	
-	reg [LVDS_LEN-1:0] 	data_rx;		// Данные после автомата считывающиеся по спадающему фронту
+	wire [LVDS_LEN-1:0] data_buf;
+	wire strob_buf;	
+	wire clk_buf;
+
+	// Выходы с регистров
+	reg [LVDS_LEN-1:0] data_rx;
 	reg strob_rx;
 	
 	//---------------------------------------------------------------------
 	// Входные буферы
 	//---------------------------------------------------------------------
-	IBUFDS #(
-		.IOSTANDARD("DEFAULT") // Specify the output I/O standard
-	) IBUFDS_clock (
-		.O(clock_out),     // Buffer output
-		.IB(Clock_diff[1]),    // Diff_n buffer input (connect directly to top-level port)
-		.I(Clock_diff[0])      // Diff_p buffer input (connect directly to top-level port) 
+	IBUFG #(
+		.IOSTANDARD("LVCMOS33") // Specify the output I/O standard
+	) IBUFG_clk (
+		.O(clk_buf),     // Buffer output
+		.I(clk_i)      // Diff_p buffer input (connect directly to top-level port) 
 	);
 
 	genvar i;
 	generate
-		for (i = 0; i < LVDS_LEN; i = i + 1) begin : lvds_bufs
-			IBUFDS #(
-				.IOSTANDARD("DEFAULT") // Specify the output I/O standard
-			) IBUFDS_data (
-				.O(data_tx[i]),     // Buffer output
-				.IB(Data_n[i]),    // Diff_n buffer input (connect directly to top-level port)
-				.I(Data_p[i])      // Diff_p buffer input (connect directly to top-level port) 
+		for (i = 0; i < LVDS_LEN; i = i + 1) begin : data_bufs
+			IBUF #(
+				.IOSTANDARD("LVCMOS33") // Specify the output I/O standard
+			) IBUF_data (
+				.O(data_buf[i]),     // Buffer output
+				.I(data_i[i])      // Diff_p buffer input (connect directly to top-level port) 
 			);
 		end
 	endgenerate
 
-	IBUFDS #(
-		.IOSTANDARD("DEFAULT") // Specify the output I/O standard
-	) IBUFDS_strob (
-		.O(strob_out),     // Buffer output
-		.IB(Strob_diff[1]),    // Diff_n buffer input (connect directly to top-level port)
-		.I(Strob_diff[0])      // Diff_p buffer input (connect directly to top-level port) 
+	IBUF #(
+		.IOSTANDARD("LVCMOS33") // Specify the output I/O standard
+	) IBUF_strob (
+		.O(strob_buf),     // Buffer output
+		.I(strob_i)      // Diff_p buffer input (connect directly to top-level port) 
 	);
 	
 
 	//---------------------------------------------------------------------
-	// Считывание данных по спадающему фронту
+	// Смена данных по восходящему фронту, считывание данных по спадающему фронту
 	//---------------------------------------------------------------------
-	always @(negedge clock_out) begin 
-		data_rx  <= data_tx;
-		strob_rx <= strob_out;
+	always @(posedge clk_buf) begin 
+		data_rx <= data_buf;
+		strob_rx <= strob_buf;
 	end
 	
-	assign DataOUT 	= data_rx;
-	assign StrobOUT = strob_rx;
-	assign ClockOUT	= clock_out;
+	assign data_o 	= data_rx;
+	assign strob_o = strob_rx;
+	assign clk_o = clk_buf;
 
 endmodule

@@ -1,13 +1,19 @@
-﻿`timescale 1ns / 1ps
+`timescale 1ns / 1ps
 
 // ------------------------------------------------------------
-// Поведенческая заглушка IBUFDS для симуляции (ISim).
-// В реальном синтезе используется примитив Xilinx.
+// Заглушки входных буферов для симуляции (ISim).
+// В синтезе используются примитивы Xilinx.
 // ------------------------------------------------------------
-module IBUFDS #(parameter IOSTANDARD="DEFAULT") (
+module IBUFG #(parameter IOSTANDARD="LVCMOS33") (
    output wire O,
-   input  wire I,
-   input  wire IB
+   input  wire I
+);
+   assign O = I;
+endmodule
+
+module IBUF #(parameter IOSTANDARD="LVCMOS33") (
+   output wire O,
+   input  wire I
 );
    assign O = I;
 endmodule
@@ -16,36 +22,39 @@ endmodule
 module lvds_tb;
 
    // Параметры теста
-   localparam integer TOTAL_WORDS = 3402;   // всего байтов во входных файлах
-   localparam integer PAUSE_LEN   = 16;     // длина паузы (FF FF ... FF)
+   localparam integer TOTAL_WORDS = 3402;
+   localparam integer PAUSE_LEN   = 16;
 
    localparam integer LVDS_LEN = 8;
    localparam integer DATA_LEN = 32;
+   localparam integer FIFO_DEPTH = 1024;
+   localparam integer ADDR_LEN = $clog2(FIFO_DEPTH);
+
+   localparam integer MAX_WORDS = (TOTAL_WORDS / 4) + 4;
 
    // Сигналы тестбенча
    reg tb_clock = 1'b0;
+   reg tb_ft_clk = 1'b0;
    reg tb_strob = 1'b0;
    reg rst_n    = 1'b0;
 
    reg  [7:0] data_p;
-   reg  [7:0] data_n;
 
-   wire [1:0] clock_diff = {~tb_clock, tb_clock};
-   wire [1:0] strob_diff = {~tb_strob, tb_strob};
-
-   // Частота 50 МГц
+   // Генераторы тактов
    always #10 tb_clock = ~tb_clock;
+   always #5  tb_ft_clk = ~tb_ft_clk;
 
-   // Данные из файлов
+   // Данные из файла
    reg [7:0] byte_seq_p [0:TOTAL_WORDS-1];
-   reg [7:0] byte_seq_n [0:TOTAL_WORDS-1];
 
    // Ожидаемые 32-битные слова (только при strobe=1)
-   reg [31:0] exp_words [0:(TOTAL_WORDS/4)];
+   reg [31:0] exp_words [0:MAX_WORDS-1];
    integer    exp_words_n;
    integer    got_words_n;
 
-   // DUT: LVDS -> packer8to32
+   // =========================================================
+   // DUT: LVDS -> packer8to32 -> fifo_dualport + sram_dp
+   // =========================================================
    wire [7:0] DataOUT;
    wire       StrobOUT;
    wire       ClockOUT;
@@ -53,13 +62,12 @@ module lvds_tb;
    LVDS #(
       .LVDS_LEN(LVDS_LEN)
    ) u_lvds (
-      .Clock_diff(clock_diff),
-      .Data_p(data_p),
-      .Data_n(data_n),
-      .Strob_diff(strob_diff),
-      .DataOUT(DataOUT),
-      .StrobOUT(StrobOUT),
-      .ClockOUT(ClockOUT)
+      .clk_i(tb_clock),
+      .strob_i(tb_strob),
+      .data_i(data_p),
+      .data_o(DataOUT),
+      .strob_o(StrobOUT),
+      .clk_o(ClockOUT)
    );
 
    wire [DATA_LEN-1:0] pack_data;
@@ -77,18 +85,68 @@ module lvds_tb;
       .data_out(pack_data)
    );
 
+   // FIFO + SRAM
+   wire [DATA_LEN-1:0] fifo_data_o;
+   wire [DATA_LEN-1:0] sram_in;
+   wire [DATA_LEN-1:0] sram_out;
+   wire                fifo_wen_o;
+   wire                fifo_ren_n;
+   wire [ADDR_LEN-1:0] fifo_addr_wr;
+   wire [ADDR_LEN-1:0] fifo_addr_rd;
+   wire                fifo_full;
+   wire                fifo_empty;
+
+   reg                 rd_en;
+   reg                 rd_en_d;
+
+   fifo_dualport #(
+      .DATA_LEN(DATA_LEN),
+      .DEPTH(FIFO_DEPTH)
+   ) u_fifo (
+      .clk_wr(ClockOUT),
+      .clk_rd(tb_ft_clk),
+      .rst_n(rst_n),
+      .wen_i(pack_vld),
+      .ren_i(rd_en),
+      .sram_data_r(sram_out),
+      .data_i(pack_data),
+      .data_o(fifo_data_o),
+      .sram_data_w(sram_in),
+      .wen_o(fifo_wen_o),
+      .ren_o(fifo_ren_n),
+      .wr_addr_o(fifo_addr_wr),
+      .rd_addr_o(fifo_addr_rd),
+      .full(fifo_full),
+      .empty(fifo_empty)
+   );
+
+   wire fifo_ren = ~fifo_ren_n;
+
+   sram_dp #(
+      .DATA_LEN(DATA_LEN),
+      .DEPTH(FIFO_DEPTH)
+   ) u_sram (
+      .wr_clk(ClockOUT),
+      .rd_clk(tb_ft_clk),
+      .wen(fifo_wen_o),
+      .ren(fifo_ren),
+      .wr_addr(fifo_addr_wr),
+      .rd_addr(fifo_addr_rd),
+      .data_i(sram_in),
+      .data_o(sram_out)
+   );
+
    // =========================================================
    // TASK'И
    // =========================================================
 
-   // Сброс
+   // Сброс сигналов и начальная инициализация
    task tb_reset;
       integer n;
       begin
          rst_n = 1'b0;
          tb_strob = 1'b0;
          data_p = 8'h00;
-         data_n = 8'hFF;
          for (n = 0; n < 4; n = n + 1)
             @(posedge tb_clock);
          rst_n = 1'b1;
@@ -96,33 +154,27 @@ module lvds_tb;
       end
    endtask
 
-
-   // Загрузка данных из файлов data_p / data_n
+   // Загрузка входного потока из файла data_p
    task load_vectors;
-      integer fd_p, fd_n;
+      integer fd_p;
       integer i, r;
       begin
          fd_p = $fopen("data_p", "r");
-         fd_n = $fopen("data_n", "r");
-         if (fd_p == 0 || fd_n == 0) begin
-            $display("ОШИБКА: не удалось открыть файлы data_p или data_n");
+         if (fd_p == 0) begin
+            $display("ОШИБКА: не удалось открыть файл data_p");
             #1000;
             $finish;
          end
 
          for (i = 0; i < TOTAL_WORDS; i = i + 1) begin
             r = $fscanf(fd_p, "%h\n", byte_seq_p[i]);
-            r = $fscanf(fd_n, "%h\n", byte_seq_n[i]);
          end
 
          $fclose(fd_p);
-         $fclose(fd_n);
       end
    endtask
 
-
-   // Проверка: начинается ли в позиции idx пауза (PAUSE_LEN байтов FF)
-      // ????????: ?????????? ?? ? ??????? idx ????? (FF 00 00 00 x4)
+   // Проверка, начинается ли пауза в позиции idx (FF 00 00 00 x4)
    task is_pause_at(
       input  integer idx,
       output reg     is_pause
@@ -136,7 +188,8 @@ module lvds_tb;
             is_pause = 1'b0;
          else begin
             for (t = 0; t < PAUSE_LEN; t = t + 1) begin
-               expected = ((t % 4) == 0) ? 8'hFF : 8'h00;
+               expected = 8'h00;
+               if ((t % 4) == 0) expected = 8'hFF;
                if (byte_seq_p[idx + t] !== expected)
                   is_pause = 1'b0;
             end
@@ -144,8 +197,7 @@ module lvds_tb;
       end
    endtask
 
-
-   // Формирование ожидаемых 32-битных слов (пропуская паузы)
+   // Формирование ожидаемых 32-битных слов (пропуск пауз)
    task build_expected_words;
       integer i;
       reg [31:0] w;
@@ -183,19 +235,16 @@ module lvds_tb;
       end
    endtask
 
-
-   // Передача одного байта
-   task send_one_byte(input [7:0] bp, input [7:0] bn, input strobe);
+   // Передача одного байта с управлением strobe
+   task send_one_byte(input [7:0] bp, input strobe);
       begin
-         @(posedge tb_clock);
+         @(negedge tb_clock);
          data_p <= bp;
-         data_n <= bn;
-			tb_strob <= strobe;
+         tb_strob <= strobe;
       end
    endtask
 
-
-   // Передача всех данных с автоматическим управлением strobe
+   // Передача всего потока с учетом пауз
    task send_all;
       integer idx;
       integer t;
@@ -206,25 +255,23 @@ module lvds_tb;
             is_pause_at(idx, pause_here);
 
             if (pause_here) begin
-               tb_strob = 1'b0;
                for (t = 0; t < PAUSE_LEN; t = t + 1) begin
-                  send_one_byte(byte_seq_p[idx], byte_seq_n[idx], 1'b0);
+                  send_one_byte(byte_seq_p[idx], 1'b0);
                   idx = idx + 1;
                end
             end else begin
-               send_one_byte(byte_seq_p[idx], byte_seq_n[idx], 1'b1);
+               send_one_byte(byte_seq_p[idx], 1'b1);
                idx = idx + 1;
             end
          end
 
-			@(posedge tb_clock)
-         tb_strob = 1'b0;
+         @(negedge tb_clock);
+         tb_strob <= 1'b0;
       end
    endtask
 
-
-   // Проверка слова, полученного из packer
-   task expect_packer_word(input integer wi, input [31:0] got);
+   // Сравнение прочитанного из FIFO слова с эталоном
+   task expect_fifo_word(input integer wi, input [31:0] got);
       begin
          if (wi >= exp_words_n) begin
             $display("ОШИБКА: получено лишнее слово [%0d] = %h", wi, got);
@@ -238,13 +285,12 @@ module lvds_tb;
       end
    endtask
 
-
-   // Ожидание N тактов
-   task wait_cycles(input integer cycles);
+   // Ожидание заданного числа тактов в домене чтения
+   task wait_ft_cycles(input integer cycles);
       integer k;
       begin
          for (k = 0; k < cycles; k = k + 1)
-            @(posedge tb_clock);
+            @(posedge tb_ft_clk);
       end
    endtask
 
@@ -255,20 +301,23 @@ module lvds_tb;
       got_words_n = 0;
 
       load_vectors();
-		$display("Первые байты из файлов: data_p[0]=%h data_n[0]=%h", byte_seq_p[0], byte_seq_n[0]);
       build_expected_words();
       tb_reset();
 
       send_all();
 
-      // Дать данным дойти по пайплайну
-      wait_cycles(64);
+      wait_ft_cycles(2000);
 
-      $display("ТЕСТ ЗАВЕРШЁН. Ожидалось слов=%0d, Получено слов=%0d",
+      $display("ТЕСТ ЗАВЕРШЕН. Ожидалось слов=%0d, Получено слов=%0d",
                exp_words_n, got_words_n);
 
       if (got_words_n !== exp_words_n) begin
          $display("ОШИБКА: количество слов не совпадает");
+         $stop;
+      end
+
+      if (!fifo_empty) begin
+         $display("ОШИБКА: FIFO не пуст после чтения");
          $stop;
       end
 
@@ -278,14 +327,28 @@ module lvds_tb;
 
 
    // =========================================================
-   // Монитор выхода packer
+   // Монитор чтения FIFO в домене tb_ft_clk
    // =========================================================
-   always @(posedge ClockOUT) begin
-      if (!rst_n)
+   always @(posedge tb_ft_clk or negedge rst_n) begin
+      if (!rst_n) begin
+         rd_en <= 1'b0;
+         rd_en_d <= 1'b0;
          got_words_n <= 0;
-      else if (pack_vld) begin
-         expect_packer_word(got_words_n, pack_data);
-         got_words_n <= got_words_n + 1;
+      end else begin
+         rd_en <= ~fifo_empty;
+         rd_en_d <= rd_en;
+         if (rd_en_d) begin
+            expect_fifo_word(got_words_n, fifo_data_o);
+            got_words_n <= got_words_n + 1;
+         end
+      end
+   end
+
+   // Контроль переполнения FIFO при записи
+   always @(posedge ClockOUT) begin
+      if (rst_n && fifo_full && pack_vld) begin
+         $display("ОШИБКА: FIFO переполнен во время записи");
+         $stop;
       end
    end
 
