@@ -1,3 +1,5 @@
+# PROJECT IS STILL IN DEVELOPMENT. README.md will be updated soon. 
+
 # FPGA LVDS → FIFO → FT601 Data Capture
 
 Проект Verilog-дизайна для ПЛИС **Xilinx Spartan-6** (плата **CallistoS6**), предназначенный для приёма высокоскоростных данных через GPIO (LVDS), их буферизации и последующей передачи на ПК через **FTDI FT601** в режиме **245 Synchronous FIFO**.
